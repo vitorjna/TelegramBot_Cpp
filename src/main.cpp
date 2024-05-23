@@ -5,7 +5,7 @@
 #include <unistd.h>
 
 #include <QAbstractSocket>
-#include <QApplication>
+#include <QCoreApplication>
 #include <QDebug>
 #include <QTime>
 
@@ -34,11 +34,11 @@ void registerMetatypes()
 
 int main(int argc, char **argv)
 {
-    qsrand(QTime::currentTime().msec());
+    srand(QTime::currentTime().msec());
 
     registerMetatypes();
 
-    QApplication botStuff(argc, argv);
+    QCoreApplication botStuff(argc, argv);
 
     BotStuff::start();
 

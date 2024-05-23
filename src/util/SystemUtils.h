@@ -3,6 +3,8 @@
 #include <QDebug>
 
 #include <windows.h>
+#include <Lmcons.h>
+#include <winable.h>
 
 class SystemUtils
 {
@@ -16,9 +18,14 @@ public:
     // the previous call and the current one.  Returns -1.0 on error.
     static float GetCPULoad();
 
-
     static bool lockPC();
 
-};
+//    static bool unlockPC(const QString &szPassword);
 
+    static bool blockInput();
+    static bool unblockInput();
+
+    static QString getLastError();
+
+};
 

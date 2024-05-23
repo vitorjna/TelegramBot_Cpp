@@ -310,6 +310,14 @@ File Bot::getFile(QString fileId)
     return File(json.value("file_id").toString(), json.value("file_size").toInt(-1), json.value("file_path").toString());
 }
 
+void Bot::setCommands(const QJsonArray &myBotCommands)
+{
+    ParameterList params;
+    params.insert("commands", HttpParameter(QJsonDocument(myBotCommands).toJson(QJsonDocument::Compact)));
+
+    m_net->request(ENDPOINT_SET_COMMANDS, params, Networking::POST);
+}
+
 bool Bot::_sendPayload(QVariant chatId, QFile *filePayload, ParameterList params, qint32 replyToMessageId, const GenericReply &replyMarkup, QString payloadField, QString endpoint)
 {
     if (chatId.type() != QVariant::String && chatId.type() != QVariant::Int) {
@@ -403,14 +411,14 @@ bool Bot::responseOk(QByteArray json)
 void Bot::internalGetUpdates()
 {
     QList<Update> updates = getUpdates(m_pollingTimeout, 50, m_updateOffset);
-    
+
     foreach (Update u, updates) {
         // change updateOffset to u.id to avoid duplicate updates
         m_updateOffset = (u.id >= m_updateOffset ? u.id + 1 : m_updateOffset);
-        
+
         emit message(u.message);
         emit update(u);
     }
-    
+
     m_internalUpdateTimer->start(m_updateInterval);
 }

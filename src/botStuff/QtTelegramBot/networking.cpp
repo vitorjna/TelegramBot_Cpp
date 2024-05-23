@@ -43,15 +43,18 @@ QByteArray Networking::request(QString endpoint, ParameterList params, Networkin
         url.setQuery(parameterListToString(params));
         req.setUrl(url);
         reply = m_nam->get(req);
+
     } else if (method == POST) {
         req.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
         reply = m_nam->post(req, parameterListToString(params));
+
     } else if (method == UPLOAD) {
         QByteArray boundary = generateMultipartBoundary(params);
         req.setHeader(QNetworkRequest::ContentTypeHeader, "multipart/form-data; boundary=" + boundary);
         QByteArray requestData = generateMultipartFormData(params, boundary);
         req.setHeader(QNetworkRequest::ContentLengthHeader, requestData.length());
         reply = m_nam->post(req, requestData);
+
     } else {
         qCritical("No valid method!");
         reply = NULL;
@@ -67,7 +70,7 @@ QByteArray Networking::request(QString endpoint, ParameterList params, Networkin
     loop.exec();
 
     if (reply->error() != QNetworkReply::NoError) {
-        qCritical("%s", qPrintable(QString("[%1] %2").arg(reply->error()).arg(reply->errorString())));
+        qCritical("%s", qPrintable(QString("[%1] %2 %3").arg(reply->error()).arg(reply->errorString()).arg(reply->readAll())));
         delete reply;
         return QByteArray();
     }
@@ -93,7 +96,7 @@ QByteArray Networking::parameterListToString(ParameterList list)
 
     ParameterList::iterator i = list.begin();
     while (i != list.end()) {
-        ret.append(i.key() + "=" + i.value().value + "&");
+        ret.append(QString(i.key() + '=' + i.value().value + '&').toUtf8());
         ++i;
     }
     ret = ret.left(ret.length() - 1);
@@ -111,7 +114,7 @@ QByteArray Networking::generateMultipartBoundary(ParameterList list)
     while (i != list.end()) {
         if (i.value().isFile) {
             while (result.isEmpty() || i.value().value.contains(result)) {
-                result.append(generateRandomString(4));
+                result.append(generateRandomString(4).toUtf8());
             }
         }
         ++i;
@@ -128,13 +131,13 @@ QByteArray Networking::generateMultipartFormData(ParameterList list, QByteArray 
     while (i != list.end()) {
         HttpParameter param = i.value();
         result.append("--" + boundary + "\r\n");
-        result.append("Content-Disposition: form-data; name=\"" + i.key());
+        result.append(QString("Content-Disposition: form-data; name=\"" + i.key()).toUtf8());
         if (param.isFile) {
-            result.append("\"; filename=\"" + param.filename);
+            result.append(QString("\"; filename=\"" + param.filename).toUtf8());
         }
         result.append("\"\r\n");
         if (param.isFile) {
-            result.append("Content-Type: " + param.mimeType + "\r\n");
+            result.append(QString("Content-Type: " + param.mimeType + "\r\n").toUtf8());
         }
         result.append("\r\n");
         result.append(param.value);

@@ -22,7 +22,7 @@ QString FunUtils::getQuoteFuturama()
     }
 
     if (szaQuotes.size() > 0) {
-        int nRandom = qrand() % szaQuotes.size();
+        int nRandom = rand() % szaQuotes.size();
         return szaQuotes.at(nRandom);
 
     } else {

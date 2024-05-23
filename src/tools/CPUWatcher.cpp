@@ -3,8 +3,9 @@
 #include "util/SystemUtils.h"
 #include "util/TimeUtils.h"
 
-CPUWatcher::CPUWatcher(QObject *parent)
+CPUWatcher::CPUWatcher(const CPUWatcherConfig &myConfig, QObject *parent)
     : QObject() //no parent, will be moved to another thread
+    , myConfig(myConfig)
     , bRun(0)
 {
     Q_UNUSED(parent)
@@ -49,14 +50,14 @@ void CPUWatcher::startMonitoringSlot()
     bool bHasStarted = false;
 
     while (bRun == 1 && bHasStarted == false) {
-        if (SystemUtils::GetCPULoad() > 0.8f) {
+        if (SystemUtils::GetCPULoad() > static_cast<float>(myConfig.HIGH_THRESHOLD / 100.0)) {
             ++nCyclesUp;
 
         } else {
             nCyclesUp = 0;
         }
 
-        if (nCyclesUp >= 4) { //at least 2s at more than 80% usage
+        if (nCyclesUp >= myConfig.HIGH_DURATION * 2) {
             bHasStarted = true;
             break;
         }
@@ -65,6 +66,7 @@ void CPUWatcher::startMonitoringSlot()
     }
 
     if (bHasStarted == true) {
+        emit highCpuSignal();
         waitForStop();
     }
 }
@@ -73,19 +75,19 @@ void CPUWatcher::waitForStop()
 {
     int nCyclesDown = 0;
 
-    TimeUtils::startTimer();
+    // TimeUtils::startTimer();
 
     bool bHasStopped = false;
 
     while (bRun == 1 && bHasStopped == false) {
-        if (SystemUtils::GetCPULoad() < 0.2f) {
+        if (SystemUtils::GetCPULoad() < static_cast<float>(myConfig.LOW_THRESHOLD / 100.0)) {
             ++nCyclesDown;
 
         } else {
             nCyclesDown = 0;
         }
 
-        if (nCyclesDown > 4) { //at least 2s at less than 20% usage
+        if (nCyclesDown > myConfig.LOW_DURATION * 2) {
             bHasStopped = true;
             break;
         }
@@ -94,13 +96,12 @@ void CPUWatcher::waitForStop()
     }
 
     if (bHasStopped == true) {
-        int64_t dTimePassed = TimeUtils::getTimeMilliseconds();
+        emit lowCpuSignal();
+        // int64_t nlTimePassed = TimeUtils::getTimeMilliseconds();
 
-        if (dTimePassed > 60 * 1000) { //if less than 30s (+ counters) were spent in high CPU usage, ignore
-            BotStuff::send(-1, QStringLiteral("Compilation has stopped"));
-        }
+        // if (nlTimePassed > 10 * 1000) { //if less than Xs (+ counters) were spent in high CPU usage, ignore
+        // }
     }
 
     startMonitoringSlot();
-
 }

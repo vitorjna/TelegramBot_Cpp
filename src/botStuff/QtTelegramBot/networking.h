@@ -25,6 +25,7 @@
 #define ENDPOINT_GET_UPDATES                "/getUpdates"
 #define ENDPOINT_SET_WEBHOOK                "/setWebhook"
 #define ENDPOINT_GET_FILE                   "/getFile"
+#define ENDPOINT_SET_COMMANDS               "/setMyCommands"
 
 namespace Telegram {
 

@@ -33,4 +33,3 @@ void TimeUtils::printTimeMilliseconds(bool bResetTimer)
 {
     qDebug() << getTimeMilliseconds(bResetTimer);
 }
-

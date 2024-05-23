@@ -297,6 +297,8 @@ public:
      */
     File getFile(QString fileId);
 
+    void setCommands(const QJsonArray &myBotCommands);
+
 private:
     Networking *m_net;
 

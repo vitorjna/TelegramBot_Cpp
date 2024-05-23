@@ -18,5 +18,3 @@ private:
     static QElapsedTimer myTimer;
 
 };
-
-
